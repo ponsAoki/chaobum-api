@@ -3,11 +3,9 @@ module chaobum-api
 go 1.20
 
 require (
-	cloud.google.com/go/storage v1.31.0
 	firebase.google.com/go v3.13.0+incompatible
-	github.com/Masterminds/squirrel v1.5.4
-	github.com/go-chi/chi/v5 v5.0.10
 	github.com/go-sql-driver/mysql v1.7.1
+	github.com/gorilla/mux v1.8.0
 	github.com/joho/godotenv v1.5.1
 	google.golang.org/api v0.134.0
 )
@@ -19,6 +17,7 @@ require (
 	cloud.google.com/go/firestore v1.11.0 // indirect
 	cloud.google.com/go/iam v1.1.0 // indirect
 	cloud.google.com/go/longrunning v0.5.1 // indirect
+	cloud.google.com/go/storage v1.31.0 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/google/go-cmp v0.5.9 // indirect
@@ -26,8 +25,6 @@ require (
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.2.5 // indirect
 	github.com/googleapis/gax-go/v2 v2.12.0 // indirect
-	github.com/lann/builder v0.0.0-20180802200727-47ae307949d0 // indirect
-	github.com/lann/ps v0.0.0-20150810152359-62de8c46ede0 // indirect
 	go.opencensus.io v0.24.0 // indirect
 	golang.org/x/crypto v0.11.0 // indirect
 	golang.org/x/net v0.12.0 // indirect

@@ -5,12 +5,13 @@ import (
 )
 
 type Photo struct {
-	ImageUrl     string
-	ShootingDate time.Time
-	CreatedAt    time.Time
-	UpdatedAt    time.Time
+	ID           string    `json:"id"`
+	ImageUrl     string    `json:"imageUrl"`
+	ShootingDate string    `json:"shootingDate"`
+	CreatedAt    time.Time `json:"createdAt"`
+	UpdatedAt    time.Time `json:"updatedAt"`
 }
 
-func NewPhoto(image string, shootingTime, createdAt, updatedAt time.Time) *Photo {
-	return &Photo{image, shootingTime, createdAt, updatedAt}
+func NewPhoto(id string, image, shootingTime string, createdAt, updatedAt time.Time) *Photo {
+	return &Photo{id, image, shootingTime, createdAt, updatedAt}
 }

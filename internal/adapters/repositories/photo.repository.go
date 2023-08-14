@@ -4,11 +4,10 @@ import (
 	"chaobum-api/config"
 	"context"
 	"database/sql"
-	"fmt"
 	"io"
+	"log"
 	"mime/multipart"
-
-	sq "github.com/Masterminds/squirrel"
+	"time"
 
 	entity "chaobum-api/internal/adapters/domains/entities"
 	entity_port "chaobum-api/internal/ports/domains/entities"
@@ -27,25 +26,33 @@ func NewPhotoRepository(storageClient firebase_storage.Client, storageCtx contex
 }
 
 func (repo *PhotoRepository) FindAllPhoto() ([]entity_port.PhotoPort, error) {
-	query := sq.Select("*").From("Photo")
-	rows, err := query.RunWith(repo.db).Query()
+	rows, err := repo.db.Query("SELECT * FROM Photo")
 	if err != nil {
-		fmt.Printf("failed to run query. error: %s\n", err.Error())
+		log.Printf("failed to run query. error: %s\n", err.Error())
 		return nil, err
 	}
 
 	photos := []entity_port.PhotoPort{}
 	for rows.Next() {
 		photo := &entity.Photo{}
-		if err := rows.Scan(&photo.ImageUrl, &photo.ShootingDate, &photo.CreatedAt, &photo.UpdatedAt); err != nil {
-			fmt.Printf("failed to scan sql rows. error: %s\n", err.Error())
+		if err := rows.Scan(&photo.ID, &photo.ImageUrl, &photo.ShootingDate, &photo.CreatedAt, &photo.UpdatedAt); err != nil {
+			log.Printf("failed to scan sql rows. error: %s\n", err.Error())
 			break
 		}
 		photos = append(photos, *photo)
 	}
-	fmt.Printf("photos: %v\n", photos)
 
 	return photos, nil
+}
+
+func (repo *PhotoRepository) FindById(id string, photo *entity.Photo) (entity_port.PhotoPort, error) {
+	err := repo.db.QueryRow("SELECT * FROM Photo WHERE id = ?", id).Scan(&photo.ID, &photo.ImageUrl, &photo.ShootingDate, &photo.CreatedAt, &photo.UpdatedAt)
+	if err != nil {
+		log.Printf("failed to scan sql row in FindById. error: %s", err.Error())
+		return nil, err
+	}
+
+	return photo, nil
 }
 
 func (repo *PhotoRepository) SaveImageFile(file multipart.File, fileHeader *multipart.FileHeader) (string, error) {
@@ -53,7 +60,7 @@ func (repo *PhotoRepository) SaveImageFile(file multipart.File, fileHeader *mult
 
 	bucket, err := repo.storageClient.DefaultBucket()
 	if err != nil {
-		fmt.Printf("failed to get storage bucket. error: %s\n", err.Error())
+		log.Printf("failed to get storage bucket. error: %s\n", err.Error())
 		return err.Error(), err
 	}
 
@@ -65,12 +72,12 @@ func (repo *PhotoRepository) SaveImageFile(file multipart.File, fileHeader *mult
 	//firebase storageにファイルをアップロード (保存)
 	_, err = io.Copy(writer, file)
 	if err != nil {
-		fmt.Printf("failed to io.Copy(). error: %s\n", err.Error())
+		log.Printf("failed to io.Copy(). error: %s\n", err.Error())
 		return err.Error(), err
 	}
 
 	if err := writer.Close(); err != nil {
-		fmt.Printf("failed to close cloud storage writer. error: %s\n", err.Error())
+		log.Printf("failed to close cloud storage writer. error: %s\n", err.Error())
 		return err.Error(), err
 	}
 
@@ -79,16 +86,10 @@ func (repo *PhotoRepository) SaveImageFile(file multipart.File, fileHeader *mult
 	return imageUrl, nil
 }
 
-func (repo *PhotoRepository) CreatePhoto(photo *entity.Photo) error {
-	queryString, args, err := sq.Insert("Photo").Columns("imageUrl", "shootingDate", "createdAt", "updatedAt").Values(photo.ImageUrl, photo.ShootingDate, photo.CreatedAt, photo.UpdatedAt).ToSql()
+func (repo *PhotoRepository) CreatePhoto(imageUrl, shootingDate string) error {
+	_, err := repo.db.Exec("INSERT INTO Photo (imageUrl, shootingDate, createdAt, updatedAt) VALUES (?, ?, ?, ?)", imageUrl, shootingDate, time.Now(), time.Now())
 	if err != nil {
-		fmt.Printf("failed to create query. error: %s\n", err.Error())
-		return err
-	}
-
-	_, err = repo.db.Exec(queryString, args...)
-	if err != nil {
-		fmt.Printf("failed to execute query. error: %s\n", err.Error())
+		log.Printf("failed to execute query. error: %s\n", err.Error())
 		return err
 	}
 

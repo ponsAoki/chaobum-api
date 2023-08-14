@@ -13,6 +13,7 @@ type env struct {
 	FIREBASE_CLIENT_EMAIL string
 	DB_DRIVER             string
 	DATA_SOURCE_NAME      string
+	FRONT_URL             string
 }
 
 var Env env
@@ -25,4 +26,5 @@ func init() {
 	Env.FIREBASE_CLIENT_EMAIL = os.Getenv("FIREBASE_CLIENT_EMAIL")
 	Env.DB_DRIVER = os.Getenv("DB_DRIVER")
 	Env.DATA_SOURCE_NAME = os.Getenv("DATA_SOURCE_NAME")
+	Env.FRONT_URL = os.Getenv("FRONT_URL")
 }
