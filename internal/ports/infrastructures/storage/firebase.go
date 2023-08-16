@@ -1,4 +1,3 @@
 package port
 
-type StorageClientPort interface {
-}
+type StorageClientPort interface{}

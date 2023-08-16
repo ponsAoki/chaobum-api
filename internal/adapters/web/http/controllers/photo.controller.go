@@ -1,8 +1,9 @@
 package controller
 
 import (
-	entity "chaobum-api/internal/adapters/domains/entities"
-	post_photo_port "chaobum-api/internal/ports/interactors/usecases/photo"
+	view "chaobum-api/internal/adapters/web/http/views"
+	entity "chaobum-api/internal/domains/entities"
+	usecase "chaobum-api/internal/interactors/usecases/photo"
 	repository_port "chaobum-api/internal/ports/repositories"
 	"encoding/json"
 	"log"
@@ -12,12 +13,14 @@ import (
 )
 
 type PhotoController struct {
-	photoRepository  repository_port.PhotoRepositoryPort
-	postPhotoService post_photo_port.PostPhotoServicePort
+	photoRepository    repository_port.PhotoRepositoryPort
+	postPhotoService   usecase.IPostPhotoService
+	updatePhotoService usecase.IUpdatePhotoService
+	deletePhotoService usecase.IDeletePhotoService
 }
 
-func NewPhotoController(photoRepository repository_port.PhotoRepositoryPort, postPhotoService post_photo_port.PostPhotoServicePort) *PhotoController {
-	return &PhotoController{photoRepository, postPhotoService}
+func NewPhotoController(photoRepository repository_port.PhotoRepositoryPort, postPhotoService usecase.IPostPhotoService, updatePhotoService usecase.IUpdatePhotoService, deletePhotoService usecase.IDeletePhotoService) *PhotoController {
+	return &PhotoController{photoRepository, postPhotoService, updatePhotoService, deletePhotoService}
 }
 
 func (controller *PhotoController) GetAllPhoto() http.HandlerFunc {
@@ -76,6 +79,61 @@ func (controller *PhotoController) PostPhoto() http.HandlerFunc {
 		}
 
 		w.WriteHeader(http.StatusCreated)
+	}
+
+	return handler
+}
+
+func (controller *PhotoController) UpdatePhoto() http.HandlerFunc {
+	handler := func(w http.ResponseWriter, r *http.Request) {
+		vars := mux.Vars(r)
+		id, ok := vars["id"]
+		if !ok {
+			log.Printf("failed to get param id.\n")
+			http.Error(w, "failed to get param id.\n", http.StatusBadRequest)
+			return
+		}
+		log.Printf("at update id: %v\n", id)
+
+		var input view.PhotoInput
+
+		log.Printf("method: %s", r.Method)
+		log.Printf("body: %v", r.Body)
+		if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+			log.Printf("failed to read input from request body at update photo. error: %s\n", err.Error())
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		err := controller.updatePhotoService.Handle(id, input)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		w.WriteHeader(http.StatusOK)
+	}
+
+	return handler
+}
+
+func (controller *PhotoController) DeletePhoto() http.HandlerFunc {
+	handler := func(w http.ResponseWriter, r *http.Request) {
+		vars := mux.Vars(r)
+		id, ok := vars["id"]
+		if !ok {
+			log.Printf("failed to get param id.\n")
+			http.Error(w, "failed to get param id.\n", http.StatusBadRequest)
+			return
+		}
+
+		err := controller.deletePhotoService.Handle(id)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		w.WriteHeader(http.StatusOK)
 	}
 
 	return handler

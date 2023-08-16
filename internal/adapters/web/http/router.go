@@ -3,13 +3,12 @@ package http
 import (
 	"chaobum-api/internal/adapters/infrastructures/db"
 	"chaobum-api/internal/adapters/infrastructures/storage"
-	usecase "chaobum-api/internal/adapters/interactors/usecases/photo"
-	repository "chaobum-api/internal/adapters/repositories"
 	controller "chaobum-api/internal/adapters/web/http/controllers"
 	middleware "chaobum-api/internal/adapters/web/http/middlewares"
-	usecase_port "chaobum-api/internal/ports/interactors/usecases/photo"
+	usecase "chaobum-api/internal/interactors/usecases/photo"
 	repository_port "chaobum-api/internal/ports/repositories"
 	controller_port "chaobum-api/internal/ports/web/http/controllers"
+	repository "chaobum-api/internal/repositories"
 	"log"
 	"net/http"
 
@@ -22,14 +21,18 @@ func (httpAdapter *HttpAdapter) InitRouter(dbClient *db.DBClient) http.Handler {
 		log.Fatalf("failed to initialize firebase storage client.\nerror: %s", err.Error())
 	}
 	var photoRepository repository_port.PhotoRepositoryPort = repository.NewPhotoRepository(*storageClient.Client, storageClient.Ctx, dbClient.DB)
-	var postPhotoService usecase_port.PostPhotoServicePort = usecase.NewPostPhotoService(photoRepository)
-	var photoController controller_port.PhotoController = controller.NewPhotoController(photoRepository, postPhotoService)
+	var postPhotoService usecase.IPostPhotoService = usecase.NewPostPhotoService(photoRepository)
+	var updatePhotoService usecase.IUpdatePhotoService = usecase.NewUpdatePhotoService(photoRepository)
+	var deletePhotoService usecase.IDeletePhotoService = usecase.NewDeletePhotoService(photoRepository)
+	var photoController controller_port.PhotoController = controller.NewPhotoController(photoRepository, postPhotoService, updatePhotoService, deletePhotoService)
 
 	r := mux.NewRouter()
 
-	r.Handle("/photo/get-all", middleware.SetCors(photoController.GetAllPhoto()))
-	r.Handle("/photo/get-by-id/{id}", middleware.SetCors(photoController.GetById()))
-	r.Handle("/photo/post-photo", middleware.SetCors(photoController.PostPhoto()))
+	r.Handle("/photo", middleware.SetCors(photoController.GetAllPhoto())).Methods(http.MethodGet)
+	r.Handle("/photo/{id}", middleware.SetCors(photoController.GetById())).Methods(http.MethodGet)
+	r.Handle("/photo", middleware.SetCors(photoController.PostPhoto())).Methods(http.MethodPost)
+	r.Handle("/photo/{id}", middleware.SetCors(photoController.UpdatePhoto())).Methods(http.MethodOptions, http.MethodPut)
+	r.Handle("/photo/{id}", middleware.SetCors(photoController.DeletePhoto())).Methods(http.MethodDelete)
 
 	http.Handle("/", r)
 

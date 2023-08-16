@@ -4,13 +4,14 @@ import (
 	"chaobum-api/config"
 	"context"
 	"database/sql"
+	"errors"
 	"io"
 	"log"
 	"mime/multipart"
 	"time"
 
-	entity "chaobum-api/internal/adapters/domains/entities"
-	entity_port "chaobum-api/internal/ports/domains/entities"
+	view "chaobum-api/internal/adapters/web/http/views"
+	entity "chaobum-api/internal/domains/entities"
 
 	firebase_storage "firebase.google.com/go/storage"
 )
@@ -25,14 +26,14 @@ func NewPhotoRepository(storageClient firebase_storage.Client, storageCtx contex
 	return &PhotoRepository{storageClient, storageCtx, db}
 }
 
-func (repo *PhotoRepository) FindAllPhoto() ([]entity_port.PhotoPort, error) {
+func (repo *PhotoRepository) FindAllPhoto() ([]entity.IPhoto, error) {
 	rows, err := repo.db.Query("SELECT * FROM Photo")
 	if err != nil {
 		log.Printf("failed to run query. error: %s\n", err.Error())
 		return nil, err
 	}
 
-	photos := []entity_port.PhotoPort{}
+	photos := []entity.IPhoto{}
 	for rows.Next() {
 		photo := &entity.Photo{}
 		if err := rows.Scan(&photo.ID, &photo.ImageUrl, &photo.ShootingDate, &photo.CreatedAt, &photo.UpdatedAt); err != nil {
@@ -45,10 +46,14 @@ func (repo *PhotoRepository) FindAllPhoto() ([]entity_port.PhotoPort, error) {
 	return photos, nil
 }
 
-func (repo *PhotoRepository) FindById(id string, photo *entity.Photo) (entity_port.PhotoPort, error) {
+func (repo *PhotoRepository) FindById(id string, photo *entity.Photo) (entity.IPhoto, error) {
 	err := repo.db.QueryRow("SELECT * FROM Photo WHERE id = ?", id).Scan(&photo.ID, &photo.ImageUrl, &photo.ShootingDate, &photo.CreatedAt, &photo.UpdatedAt)
+	if errors.Is(err, sql.ErrNoRows) {
+		log.Printf("no photo records found. error: %s\n", err.Error())
+		return nil, err
+	}
 	if err != nil {
-		log.Printf("failed to scan sql row in FindById. error: %s", err.Error())
+		log.Printf("failed to scan sql row in FindById. error: %s\n", err.Error())
 		return nil, err
 	}
 
@@ -87,9 +92,29 @@ func (repo *PhotoRepository) SaveImageFile(file multipart.File, fileHeader *mult
 }
 
 func (repo *PhotoRepository) CreatePhoto(imageUrl, shootingDate string) error {
-	_, err := repo.db.Exec("INSERT INTO Photo (imageUrl, shootingDate, createdAt, updatedAt) VALUES (?, ?, ?, ?)", imageUrl, shootingDate, time.Now(), time.Now())
+	_, err := repo.db.Exec("INSERT INTO photo (imageUrl, shootingDate, createdAt, updatedAt) VALUES (?, ?, ?, ?)", imageUrl, shootingDate, time.Now(), time.Now())
 	if err != nil {
-		log.Printf("failed to execute query. error: %s\n", err.Error())
+		log.Printf("failed to execute query to create photo. error: %s\n", err.Error())
+		return err
+	}
+
+	return nil
+}
+
+func (repo *PhotoRepository) UpdatePhoto(id string, input view.PhotoInput) error {
+	_, err := repo.db.Exec("UPDATE photo SET shootingDate = ? WHERE id = ?", input.ShootingDate, id)
+	if err != nil {
+		log.Printf("failed to execute query to update photo. error: %s\n", err.Error())
+		return err
+	}
+
+	return nil
+}
+
+func (repo *PhotoRepository) DeletePhoto(id string) error {
+	_, err := repo.db.Exec("DELETE FROM photo WHERE id = ?", id)
+	if err != nil {
+		log.Printf("failed to execute query to delete photo. error: %s\n", err.Error())
 		return err
 	}
 

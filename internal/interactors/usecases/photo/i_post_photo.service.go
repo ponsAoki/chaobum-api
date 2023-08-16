@@ -1,9 +1,9 @@
-package port
+package usecase
 
 import (
 	"mime/multipart"
 )
 
-type PostPhotoServicePort interface {
+type IPostPhotoService interface {
 	Handle(image multipart.File, fileHeader *multipart.FileHeader, shootingDate string) error
 }
