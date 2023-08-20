@@ -4,6 +4,8 @@ import (
 	view "chaobum-api/internal/adapters/web/http/views"
 	entity "chaobum-api/internal/domains/entities"
 	"mime/multipart"
+
+	"cloud.google.com/go/storage"
 )
 
 type PhotoRepositoryPort interface {
@@ -13,4 +15,5 @@ type PhotoRepositoryPort interface {
 	CreatePhoto(imageUrl, shootingDate string) error
 	UpdatePhoto(id string, input view.PhotoInput) error
 	DeletePhoto(id string) error
+	DownloadImageFile(fileName string) (*storage.Reader, error)
 }

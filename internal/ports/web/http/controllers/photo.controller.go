@@ -8,4 +8,5 @@ type PhotoController interface {
 	PostPhoto() http.HandlerFunc
 	UpdatePhoto() http.HandlerFunc
 	DeletePhoto() http.HandlerFunc
+	DownloadImageFile() http.HandlerFunc
 }

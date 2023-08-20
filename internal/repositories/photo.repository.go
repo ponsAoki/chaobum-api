@@ -1,7 +1,6 @@
 package repository
 
 import (
-	"chaobum-api/config"
 	"context"
 	"database/sql"
 	"errors"
@@ -10,9 +9,11 @@ import (
 	"mime/multipart"
 	"time"
 
+	"chaobum-api/config"
 	view "chaobum-api/internal/adapters/web/http/views"
 	entity "chaobum-api/internal/domains/entities"
 
+	"cloud.google.com/go/storage"
 	firebase_storage "firebase.google.com/go/storage"
 )
 
@@ -119,4 +120,20 @@ func (repo *PhotoRepository) DeletePhoto(id string) error {
 	}
 
 	return nil
+}
+
+func (repo *PhotoRepository) DownloadImageFile(fileName string) (*storage.Reader, error) {
+	bucket, err := repo.storageClient.DefaultBucket()
+	if err != nil {
+		log.Printf("failed to get storage bucket. error: %s\n", err.Error())
+		return nil, err
+	}
+
+	storageReader, err := bucket.Object(fileName).NewReader(repo.storageCtx)
+	if err != nil {
+		log.Printf("failed to create storage reader at download image file. error: %s\n", err.Error())
+		return nil, err
+	}
+
+	return storageReader, nil
 }

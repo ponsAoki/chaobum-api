@@ -24,7 +24,8 @@ func (httpAdapter *HttpAdapter) InitRouter(dbClient *db.DBClient) http.Handler {
 	var postPhotoService usecase.IPostPhotoService = usecase.NewPostPhotoService(photoRepository)
 	var updatePhotoService usecase.IUpdatePhotoService = usecase.NewUpdatePhotoService(photoRepository)
 	var deletePhotoService usecase.IDeletePhotoService = usecase.NewDeletePhotoService(photoRepository)
-	var photoController controller_port.PhotoController = controller.NewPhotoController(photoRepository, postPhotoService, updatePhotoService, deletePhotoService)
+	var downloadImageFileService usecase.IDownloadImageFileService = usecase.NewDownloadImageFileService(photoRepository)
+	var photoController controller_port.PhotoController = controller.NewPhotoController(photoRepository, postPhotoService, updatePhotoService, deletePhotoService, downloadImageFileService)
 
 	r := mux.NewRouter()
 
@@ -33,6 +34,7 @@ func (httpAdapter *HttpAdapter) InitRouter(dbClient *db.DBClient) http.Handler {
 	r.Handle("/photo", middleware.SetCors(photoController.PostPhoto())).Methods(http.MethodPost)
 	r.Handle("/photo/{id}", middleware.SetCors(photoController.UpdatePhoto())).Methods(http.MethodOptions, http.MethodPut)
 	r.Handle("/photo/{id}", middleware.SetCors(photoController.DeletePhoto())).Methods(http.MethodDelete)
+	r.Handle("/photo/image_file_download", middleware.SetCors(photoController.DownloadImageFile())).Methods(http.MethodPost)
 
 	http.Handle("/", r)
 
