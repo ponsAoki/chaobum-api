@@ -1,14 +1,28 @@
 version: "3.8"
 
 services:
+  chaobum-api:
+    build: ./app
+    ports:
+      - 8080:8080
+    env_file:
+      - ./app/.env
+    container_name: chaobum-api
+    depends_on:
+      - chaobum-db
+    restart: on-failure:10
+    # WARNING: Dockerfileでバイナリファイルをビルドしてそれを実行するようにしている場合、時差があるのか、幾度かコンテナの起動を試みても「connection refused」でdb接続エラーが出る。
+    # そのため、restartを余裕を持って10回ほど試みている。
+
   chaobum-db:
     image: mysql:8.0.34
     env_file:
       - ./docker/mysql.env
-    container_name: "chaobum-db"
+    container_name: chaobum-db
     volumes:
       - ./docker/conf/mysql.cnf:/etc/mysql/conf.d/mysql.conf.cnf
       - ./docker/data:/var/lib/mysql
       - ./docker/logs:/var/log/mysql
+      - ./db:/docker-entrypoint-initdb.d
     ports:
-      - "6606:3306"
+      - 3306:3306
