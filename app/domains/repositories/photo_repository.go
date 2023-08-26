@@ -1,4 +1,4 @@
-package port
+package repository
 
 import (
 	view "chaobum-api/adapters/web/http/views"
@@ -8,9 +8,9 @@ import (
 	"cloud.google.com/go/storage"
 )
 
-type PhotoRepositoryPort interface {
-	FindAllPhoto() ([]entity.IPhoto, error)
-	FindById(id string, user *entity.Photo) (entity.IPhoto, error)
+type PhotoRepository interface {
+	FindAllPhoto() ([]entity.Photo, error)
+	FindById(id string, user *entity.Photo) (*entity.Photo, error)
 	SaveImageFile(file multipart.File, fileHeader *multipart.FileHeader) (string, error)
 	CreatePhoto(imageUrl, shootingDate string) error
 	UpdatePhoto(id string, input view.PhotoInput) error

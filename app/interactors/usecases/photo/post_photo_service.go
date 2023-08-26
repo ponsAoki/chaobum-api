@@ -1,15 +1,15 @@
 package usecase
 
 import (
-	repository_port "chaobum-api/ports/repositories"
+	repository "chaobum-api/domains/repositories"
 	"mime/multipart"
 )
 
 type PostPhotoService struct {
-	photoRepo repository_port.PhotoRepositoryPort
+	photoRepo repository.PhotoRepository
 }
 
-func NewPostPhotoService(photoRepo repository_port.PhotoRepositoryPort) *PostPhotoService {
+func NewPostPhotoService(photoRepo repository.PhotoRepository) *PostPhotoService {
 	return &PostPhotoService{photoRepo}
 }
 

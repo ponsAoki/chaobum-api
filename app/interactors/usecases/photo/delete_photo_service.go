@@ -1,14 +1,14 @@
 package usecase
 
 import (
-	repository_port "chaobum-api/ports/repositories"
+	repository "chaobum-api/domains/repositories"
 )
 
 type DeletePhotoService struct {
-	photoRepo repository_port.PhotoRepositoryPort
+	photoRepo repository.PhotoRepository
 }
 
-func NewDeletePhotoService(photoRepo repository_port.PhotoRepositoryPort) *DeletePhotoService {
+func NewDeletePhotoService(photoRepo repository.PhotoRepository) *DeletePhotoService {
 	return &DeletePhotoService{photoRepo}
 }
 

@@ -5,10 +5,9 @@ import (
 	"chaobum-api/adapters/infrastructures/storage"
 	controller "chaobum-api/adapters/web/http/controllers"
 	middleware "chaobum-api/adapters/web/http/middlewares"
+	repository "chaobum-api/domains/repositories"
 	usecase "chaobum-api/interactors/usecases/photo"
-	repository_port "chaobum-api/ports/repositories"
-	controller_port "chaobum-api/ports/web/http/controllers"
-	repository "chaobum-api/repositories"
+	repository_impl "chaobum-api/repositories"
 	"log"
 	"net/http"
 
@@ -20,12 +19,12 @@ func (httpAdapter *HttpAdapter) InitRouter(dbClient *db.DBClient) http.Handler {
 	if err != nil {
 		log.Fatalf("failed to initialize firebase storage client.\nerror: %s", err.Error())
 	}
-	var photoRepository repository_port.PhotoRepositoryPort = repository.NewPhotoRepository(*storageClient.Client, storageClient.Ctx, dbClient.DB)
-	var postPhotoService usecase.IPostPhotoService = usecase.NewPostPhotoService(photoRepository)
-	var updatePhotoService usecase.IUpdatePhotoService = usecase.NewUpdatePhotoService(photoRepository)
-	var deletePhotoService usecase.IDeletePhotoService = usecase.NewDeletePhotoService(photoRepository)
-	var downloadImageFileService usecase.IDownloadImageFileService = usecase.NewDownloadImageFileService(photoRepository)
-	var photoController controller_port.PhotoController = controller.NewPhotoController(photoRepository, postPhotoService, updatePhotoService, deletePhotoService, downloadImageFileService)
+	var photoRepository repository.PhotoRepository = repository_impl.NewPhotoRepositoryImpl(*storageClient.Client, storageClient.Ctx, dbClient.DB)
+	postPhotoService := usecase.NewPostPhotoService(photoRepository)
+	updatePhotoService := usecase.NewUpdatePhotoService(photoRepository)
+	deletePhotoService := usecase.NewDeletePhotoService(photoRepository)
+	downloadImageFileService := usecase.NewDownloadImageFileService(photoRepository)
+	var photoController controller.PhotoController = controller.NewPhotoControllerImpl(photoRepository, postPhotoService, updatePhotoService, deletePhotoService, downloadImageFileService)
 
 	r := mux.NewRouter()
 

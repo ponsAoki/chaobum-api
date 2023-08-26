@@ -3,8 +3,8 @@ package controller
 import (
 	view "chaobum-api/adapters/web/http/views"
 	entity "chaobum-api/domains/entities"
+	repository "chaobum-api/domains/repositories"
 	usecase "chaobum-api/interactors/usecases/photo"
-	repository_port "chaobum-api/ports/repositories"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -15,19 +15,19 @@ import (
 	"github.com/gorilla/mux"
 )
 
-type PhotoController struct {
-	photoRepository          repository_port.PhotoRepositoryPort
-	postPhotoService         usecase.IPostPhotoService
-	updatePhotoService       usecase.IUpdatePhotoService
-	deletePhotoService       usecase.IDeletePhotoService
-	downloadImageFileService usecase.IDownloadImageFileService
+type photoControllerImpl struct {
+	photoRepository          repository.PhotoRepository
+	postPhotoService         *usecase.PostPhotoService
+	updatePhotoService       *usecase.UpdatePhotoService
+	deletePhotoService       *usecase.DeletePhotoService
+	downloadImageFileService *usecase.DownloadImageFileService
 }
 
-func NewPhotoController(photoRepository repository_port.PhotoRepositoryPort, postPhotoService usecase.IPostPhotoService, updatePhotoService usecase.IUpdatePhotoService, deletePhotoService usecase.IDeletePhotoService, downloadImageFileService usecase.IDownloadImageFileService) *PhotoController {
-	return &PhotoController{photoRepository, postPhotoService, updatePhotoService, deletePhotoService, downloadImageFileService}
+func NewPhotoControllerImpl(photoRepository repository.PhotoRepository, postPhotoService *usecase.PostPhotoService, updatePhotoService *usecase.UpdatePhotoService, deletePhotoService *usecase.DeletePhotoService, downloadImageFileService *usecase.DownloadImageFileService) *photoControllerImpl {
+	return &photoControllerImpl{photoRepository, postPhotoService, updatePhotoService, deletePhotoService, downloadImageFileService}
 }
 
-func (controller *PhotoController) GetAllPhoto() http.HandlerFunc {
+func (controller *photoControllerImpl) GetAllPhoto() http.HandlerFunc {
 	handler := func(w http.ResponseWriter, r *http.Request) {
 		photos, err := controller.photoRepository.FindAllPhoto()
 		if err != nil {
@@ -41,7 +41,7 @@ func (controller *PhotoController) GetAllPhoto() http.HandlerFunc {
 	return handler
 }
 
-func (controller *PhotoController) GetById() http.HandlerFunc {
+func (controller *photoControllerImpl) GetById() http.HandlerFunc {
 	handler := func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		id, ok := vars["id"]
@@ -64,7 +64,7 @@ func (controller *PhotoController) GetById() http.HandlerFunc {
 	return handler
 }
 
-func (controller *PhotoController) PostPhoto() http.HandlerFunc {
+func (controller *photoControllerImpl) PostPhoto() http.HandlerFunc {
 	handler := func(w http.ResponseWriter, r *http.Request) {
 		file, fileHeader, err := r.FormFile("file")
 		if err != nil {
@@ -88,7 +88,7 @@ func (controller *PhotoController) PostPhoto() http.HandlerFunc {
 	return handler
 }
 
-func (controller *PhotoController) UpdatePhoto() http.HandlerFunc {
+func (controller *photoControllerImpl) UpdatePhoto() http.HandlerFunc {
 	handler := func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		id, ok := vars["id"]
@@ -118,7 +118,7 @@ func (controller *PhotoController) UpdatePhoto() http.HandlerFunc {
 	return handler
 }
 
-func (controller *PhotoController) DeletePhoto() http.HandlerFunc {
+func (controller *photoControllerImpl) DeletePhoto() http.HandlerFunc {
 	handler := func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		id, ok := vars["id"]
@@ -140,7 +140,7 @@ func (controller *PhotoController) DeletePhoto() http.HandlerFunc {
 	return handler
 }
 
-func (controller *PhotoController) DownloadImageFile() http.HandlerFunc {
+func (controller *photoControllerImpl) DownloadImageFile() http.HandlerFunc {
 	handler := func(w http.ResponseWriter, r *http.Request) {
 		var input view.DownloadImageFileInput
 

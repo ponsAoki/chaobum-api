@@ -4,7 +4,6 @@ import (
 	"chaobum-api/adapters/infrastructures/db"
 	"chaobum-api/adapters/web/http"
 	"chaobum-api/config"
-	http_port "chaobum-api/ports/web/http"
 	"log"
 )
 
@@ -15,6 +14,6 @@ func main() {
 	}
 	defer dbClient.CloseDbConnection()
 
-	var httpAdapter http_port.HttpPort = http.NewHttpAdapter()
+	var httpAdapter http.HttpPort = http.NewHttpAdapter()
 	httpAdapter.Run(dbClient)
 }

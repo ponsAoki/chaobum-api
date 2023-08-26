@@ -1,16 +1,16 @@
 package usecase
 
 import (
-	repository_port "chaobum-api/ports/repositories"
+	repository "chaobum-api/domains/repositories"
 
 	"cloud.google.com/go/storage"
 )
 
 type DownloadImageFileService struct {
-	photoRepo repository_port.PhotoRepositoryPort
+	photoRepo repository.PhotoRepository
 }
 
-func NewDownloadImageFileService(photoRepo repository_port.PhotoRepositoryPort) *DownloadImageFileService {
+func NewDownloadImageFileService(photoRepo repository.PhotoRepository) *DownloadImageFileService {
 	return &DownloadImageFileService{photoRepo}
 }
 

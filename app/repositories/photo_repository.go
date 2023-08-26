@@ -17,24 +17,24 @@ import (
 	firebase_storage "firebase.google.com/go/storage"
 )
 
-type PhotoRepository struct {
+type photoRepositoryImpl struct {
 	storageClient firebase_storage.Client
 	storageCtx    context.Context
 	db            *sql.DB
 }
 
-func NewPhotoRepository(storageClient firebase_storage.Client, storageCtx context.Context, db *sql.DB) *PhotoRepository {
-	return &PhotoRepository{storageClient, storageCtx, db}
+func NewPhotoRepositoryImpl(storageClient firebase_storage.Client, storageCtx context.Context, db *sql.DB) *photoRepositoryImpl {
+	return &photoRepositoryImpl{storageClient, storageCtx, db}
 }
 
-func (repo *PhotoRepository) FindAllPhoto() ([]entity.IPhoto, error) {
+func (repo *photoRepositoryImpl) FindAllPhoto() ([]entity.Photo, error) {
 	rows, err := repo.db.Query("SELECT * FROM photo")
 	if err != nil {
 		log.Printf("failed to run query. error: %s\n", err.Error())
 		return nil, err
 	}
 
-	photos := []entity.IPhoto{}
+	photos := []entity.Photo{}
 	for rows.Next() {
 		photo := &entity.Photo{}
 		if err := rows.Scan(&photo.ID, &photo.ImageUrl, &photo.ShootingDate, &photo.CreatedAt, &photo.UpdatedAt); err != nil {
@@ -47,7 +47,7 @@ func (repo *PhotoRepository) FindAllPhoto() ([]entity.IPhoto, error) {
 	return photos, nil
 }
 
-func (repo *PhotoRepository) FindById(id string, photo *entity.Photo) (entity.IPhoto, error) {
+func (repo *photoRepositoryImpl) FindById(id string, photo *entity.Photo) (*entity.Photo, error) {
 	err := repo.db.QueryRow("SELECT * FROM photo WHERE id = ?", id).Scan(&photo.ID, &photo.ImageUrl, &photo.ShootingDate, &photo.CreatedAt, &photo.UpdatedAt)
 	if errors.Is(err, sql.ErrNoRows) {
 		log.Printf("no photo records found. error: %s\n", err.Error())
@@ -61,7 +61,7 @@ func (repo *PhotoRepository) FindById(id string, photo *entity.Photo) (entity.IP
 	return photo, nil
 }
 
-func (repo *PhotoRepository) SaveImageFile(file multipart.File, fileHeader *multipart.FileHeader) (string, error) {
+func (repo *photoRepositoryImpl) SaveImageFile(file multipart.File, fileHeader *multipart.FileHeader) (string, error) {
 	defer file.Close()
 
 	bucket, err := repo.storageClient.DefaultBucket()
@@ -92,7 +92,7 @@ func (repo *PhotoRepository) SaveImageFile(file multipart.File, fileHeader *mult
 	return imageUrl, nil
 }
 
-func (repo *PhotoRepository) CreatePhoto(imageUrl, shootingDate string) error {
+func (repo *photoRepositoryImpl) CreatePhoto(imageUrl, shootingDate string) error {
 	_, err := repo.db.Exec("INSERT INTO photo (imageUrl, shootingDate, createdAt, updatedAt) VALUES (?, ?, ?, ?)", imageUrl, shootingDate, time.Now(), time.Now())
 	if err != nil {
 		log.Printf("failed to execute query to create photo. error: %s\n", err.Error())
@@ -102,7 +102,7 @@ func (repo *PhotoRepository) CreatePhoto(imageUrl, shootingDate string) error {
 	return nil
 }
 
-func (repo *PhotoRepository) UpdatePhoto(id string, input view.PhotoInput) error {
+func (repo *photoRepositoryImpl) UpdatePhoto(id string, input view.PhotoInput) error {
 	_, err := repo.db.Exec("UPDATE photo SET shootingDate = ? WHERE id = ?", input.ShootingDate, id)
 	if err != nil {
 		log.Printf("failed to execute query to update photo. error: %s\n", err.Error())
@@ -112,7 +112,7 @@ func (repo *PhotoRepository) UpdatePhoto(id string, input view.PhotoInput) error
 	return nil
 }
 
-func (repo *PhotoRepository) DeletePhoto(id string) error {
+func (repo *photoRepositoryImpl) DeletePhoto(id string) error {
 	_, err := repo.db.Exec("DELETE FROM photo WHERE id = ?", id)
 	if err != nil {
 		log.Printf("failed to execute query to delete photo. error: %s\n", err.Error())
@@ -122,7 +122,7 @@ func (repo *PhotoRepository) DeletePhoto(id string) error {
 	return nil
 }
 
-func (repo *PhotoRepository) DownloadImageFile(fileName string) (*storage.Reader, error) {
+func (repo *photoRepositoryImpl) DownloadImageFile(fileName string) (*storage.Reader, error) {
 	bucket, err := repo.storageClient.DefaultBucket()
 	if err != nil {
 		log.Printf("failed to get storage bucket. error: %s\n", err.Error())

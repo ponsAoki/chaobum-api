@@ -2,14 +2,14 @@ package usecase
 
 import (
 	view "chaobum-api/adapters/web/http/views"
-	repository_port "chaobum-api/ports/repositories"
+	repository "chaobum-api/domains/repositories"
 )
 
 type UpdatePhotoService struct {
-	photoRepo repository_port.PhotoRepositoryPort
+	photoRepo repository.PhotoRepository
 }
 
-func NewUpdatePhotoService(photoRepo repository_port.PhotoRepositoryPort) *UpdatePhotoService {
+func NewUpdatePhotoService(photoRepo repository.PhotoRepository) *UpdatePhotoService {
 	return &UpdatePhotoService{photoRepo}
 }
 
