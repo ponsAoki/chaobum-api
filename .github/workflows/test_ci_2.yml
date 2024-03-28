@@ -1,0 +1,13 @@
+name: Test CI 2
+
+on: [push]
+
+jobs:
+  ci_2:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Handle of CI2
+        run: echo "CI2 done"
