@@ -6,7 +6,7 @@ services:
     ports:
       - 8080:8080
     env_file:
-      - ./app/.env
+      - ./app/.env.local
     container_name: chaobum-api
     depends_on:
       - chaobum-db
