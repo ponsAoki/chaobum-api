@@ -27,9 +27,9 @@ func NewPhotoControllerImpl(photoRepository repository.PhotoRepository, postPhot
 	return &photoControllerImpl{photoRepository, postPhotoService, updatePhotoService, deletePhotoService, downloadImageFileService}
 }
 
-func (controller *photoControllerImpl) GetAllPhoto() http.HandlerFunc {
+func (c *photoControllerImpl) GetAllPhoto() http.HandlerFunc {
 	handler := func(w http.ResponseWriter, r *http.Request) {
-		photos, err := controller.photoRepository.FindAllPhoto()
+		photos, err := c.photoRepository.FindAllPhoto()
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -41,7 +41,7 @@ func (controller *photoControllerImpl) GetAllPhoto() http.HandlerFunc {
 	return handler
 }
 
-func (controller *photoControllerImpl) GetById() http.HandlerFunc {
+func (c *photoControllerImpl) GetById() http.HandlerFunc {
 	handler := func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		id, ok := vars["id"]
@@ -52,7 +52,7 @@ func (controller *photoControllerImpl) GetById() http.HandlerFunc {
 		}
 
 		photo := &entity.Photo{}
-		resPhoto, err := controller.photoRepository.FindById(id, photo)
+		resPhoto, err := c.photoRepository.FindById(id, photo)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -64,7 +64,7 @@ func (controller *photoControllerImpl) GetById() http.HandlerFunc {
 	return handler
 }
 
-func (controller *photoControllerImpl) PostPhoto() http.HandlerFunc {
+func (c *photoControllerImpl) PostPhoto() http.HandlerFunc {
 	handler := func(w http.ResponseWriter, r *http.Request) {
 		file, fileHeader, err := r.FormFile("file")
 		if err != nil {
@@ -76,7 +76,7 @@ func (controller *photoControllerImpl) PostPhoto() http.HandlerFunc {
 
 		shootingDate := r.FormValue("shootingDate")
 
-		err = controller.postPhotoService.Handle(file, fileHeader, shootingDate)
+		err = c.postPhotoService.Handle(file, fileHeader, shootingDate)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -88,7 +88,7 @@ func (controller *photoControllerImpl) PostPhoto() http.HandlerFunc {
 	return handler
 }
 
-func (controller *photoControllerImpl) UpdatePhoto() http.HandlerFunc {
+func (c *photoControllerImpl) UpdatePhoto() http.HandlerFunc {
 	handler := func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		id, ok := vars["id"]
@@ -106,7 +106,7 @@ func (controller *photoControllerImpl) UpdatePhoto() http.HandlerFunc {
 			return
 		}
 
-		err := controller.updatePhotoService.Handle(id, input)
+		err := c.updatePhotoService.Handle(id, input)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -118,7 +118,7 @@ func (controller *photoControllerImpl) UpdatePhoto() http.HandlerFunc {
 	return handler
 }
 
-func (controller *photoControllerImpl) DeletePhoto() http.HandlerFunc {
+func (c *photoControllerImpl) DeletePhoto() http.HandlerFunc {
 	handler := func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		id, ok := vars["id"]
@@ -128,7 +128,7 @@ func (controller *photoControllerImpl) DeletePhoto() http.HandlerFunc {
 			return
 		}
 
-		err := controller.deletePhotoService.Handle(id)
+		err := c.deletePhotoService.Handle(id)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -140,7 +140,7 @@ func (controller *photoControllerImpl) DeletePhoto() http.HandlerFunc {
 	return handler
 }
 
-func (controller *photoControllerImpl) DownloadImageFile() http.HandlerFunc {
+func (c *photoControllerImpl) DownloadImageFile() http.HandlerFunc {
 	handler := func(w http.ResponseWriter, r *http.Request) {
 		var input view.DownloadImageFileInput
 
@@ -152,7 +152,7 @@ func (controller *photoControllerImpl) DownloadImageFile() http.HandlerFunc {
 
 		fileName := strings.Split(strings.Split(input.ImageUrl, "/")[7], "?")[0]
 
-		storageReader, err := controller.downloadImageFileService.Handle(fileName)
+		storageReader, err := c.downloadImageFileService.Handle(fileName)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
